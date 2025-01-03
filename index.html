@@ -2,221 +2,177 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        .container {
-            max-width: 100%;
-            overflow-x: auto;
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        
-        th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-        
-        input[type="number"] {
-            width: 50px;
-            padding: 5px;
-            text-align: center;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        .leader {
-            background-color: #e8f5e9;
-        }
-        
-        .last-place {
-            background-color: #ffebee;
-        }
-        
-        .info-box {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-        
-        .progress-bar-container {
-            width: 100%;
-            background-color: #f0f0f0;
-            border-radius: 10px;
-            margin: 5px 0;
-        }
-        
-        .progress-bar {
-            height: 20px;
-            border-radius: 10px;
-            transition: width 0.5s ease-in-out;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 5px;
+        /* ... [Mantenha todo o CSS anterior] ... */
+
+        .save-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #4caf50;
             color: white;
-            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
         }
-        
-        .progress-level-1 { background-color: #9e9e9e; }
-        .progress-level-2 { background-color: #9c27b0; }
-        .progress-level-3 { background-color: #2196f3; }
-        .progress-level-4 { background-color: #4caf50; }
+
+        .save-button:hover {
+            background-color: #45a049;
+        }
+
+        .save-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        /* Mensagens de feedback */
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 4px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 1000;
+        }
+
+        .success {
+            background-color: #4caf50;
+            opacity: 1;
+        }
+
+        .error {
+            background-color: #f44336;
+            opacity: 1;
+        }
+
+        .loading {
+            background-color: #2196f3;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align: center;">Controle do Desafio de Ginástica</h1>
-        
-        <table id="workoutTable">
-            <thead>
-                <tr>
-                    <th>Participante</th>
-                    <th>Semana 1<br>06/01 - 12/01</th>
-                    <th>Semana 2<br>13/01 - 19/01</th>
-                    <th>Semana 3<br>20/01 - 26/01</th>
-                    <th>Total Atividades</th>
-                    <th>Saldo (€)</th>
-                    <th>Progresso</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr data-participant="Andrea">
-                    <td>Andréa</td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td class="total">0</td>
-                    <td class="balance">0</td>
-                    <td class="progress"></td>
-                </tr>
-                <tr data-participant="Claudia">
-                    <td>Cláudia</td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td class="total">0</td>
-                    <td class="balance">0</td>
-                    <td class="progress"></td>
-                </tr>
-                <tr data-participant="Isabela">
-                    <td>Isabela</td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td class="total">0</td>
-                    <td class="balance">0</td>
-                    <td class="progress"></td>
-                </tr>
-                <tr data-participant="Fabiana">
-                    <td>Fabiana</td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
-                    <td class="total">0</td>
-                    <td class="balance">0</td>
-                    <td class="progress"></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="info-box">
-            <h3>Informações do Desafio:</h3>
-            <p>• Período: 06/01/2025 - 31/07/2025</p>
-            <p>• Objetivo: 3 atividades por semana</p>
-            <p>• Máximo de atividades por semana: 3</p>
-            <p>• Multa por atividade não realizada: 10€</p>
-            <p id="leaderInfo"></p>
-        </div>
+        <!-- [Mantenha todo o HTML da estrutura da tabela anterior] -->
+        <button id="saveButton" class="save-button">Salvar Alterações</button>
     </div>
+    <div id="message" class="message"></div>
 
     <script>
-        function updateWorkouts(input) {
-            // Limita o valor entre 0 e 3
-            input.value = Math.max(0, Math.min(3, parseInt(input.value) || 0));
-            
-            updateTotalsAndRankings();
+        let currentData = {};
+        let hasUnsavedChanges = false;
+
+        // Função para mostrar mensagens
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            setTimeout(() => {
+                message.className = 'message';
+            }, 3000);
         }
 
-        function updateTotalsAndRankings() {
-            const rows = document.querySelectorAll('#workoutTable tbody tr');
-            let maxTotal = 0;
-            let minTotal = Infinity;
-            let totals = [];
-
-            // Calcular totais e encontrar máximo/mínimo
-            rows.forEach(row => {
-                const inputs = row.querySelectorAll('input[type="number"]');
-                const total = Array.from(inputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
-                const totalCell = row.querySelector('.total');
-                const balanceCell = row.querySelector('.balance');
-                const progressCell = row.querySelector('.progress');
-                
-                totalCell.textContent = total;
-                
-                // Calcular saldo (10€ por atividade realizada - débito total)
-                const totalWeeks = inputs.length;
-                const requiredPerWeek = 3;
-                const totalRequired = totalWeeks * requiredPerWeek;
-                const balance = (total * 10) - (totalRequired * 10);
-                balanceCell.textContent = balance + '€';
-
-                // Atualizar barra de progresso
-                const maxPossible = totalWeeks * 3;
-                const percentage = (total / maxPossible) * 100;
-                let progressClass = 'progress-level-1';
-                
-                if (percentage >= 80) progressClass = 'progress-level-4';
-                else if (percentage >= 50) progressClass = 'progress-level-3';
-                else if (percentage >= 20) progressClass = 'progress-level-2';
-
-                progressCell.innerHTML = `
-                    <div class="progress-bar-container">
-                        <div class="progress-bar ${progressClass}" style="width: ${percentage}%">
-                            ${Math.round(percentage)}%
-                        </div>
-                    </div>
-                `;
-
-                maxTotal = Math.max(maxTotal, total);
-                minTotal = Math.min(minTotal, total);
-                totals.push({ name: row.dataset.participant, total });
-            });
-
-            // Atualizar classes de liderança
-            rows.forEach(row => {
-                const total = parseInt(row.querySelector('.total').textContent);
-                row.classList.remove('leader', 'last-place');
-                if (total === maxTotal && total > 0) row.classList.add('leader');
-                if (total === minTotal && total > 0) row.classList.add('last-place');
-            });
-
-            // Atualizar informação do líder
-            const leaders = totals.filter(t => t.total === maxTotal && t.total > 0);
-            const leaderInfo = document.getElementById('leaderInfo');
-            if (leaders.length > 0) {
-                const leaderText = leaders.length > 1 ? 'Líderes atuais' : 'Líder atual';
-                const leaderNames = leaders.map(l => l.name).join(', ');
-                leaderInfo.textContent = `• ${leaderText}: ${leaderNames} com ${maxTotal} atividades`;
-                leaderInfo.style.color = '#4caf50';
-            } else {
-                leaderInfo.textContent = '';
+        // Carregar dados do arquivo data.json
+        async function loadData() {
+            try {
+                showMessage('Carregando dados...', 'loading');
+                const response = await fetch('data.json');
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar dados');
+                }
+                const data = await response.json();
+                currentData = data.workoutData || {};
+                showMessage('Dados carregados com sucesso!', 'success');
+                return currentData;
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                showMessage('Erro ao carregar dados', 'error');
+                return {};
             }
         }
 
-        // Inicializar a planilha
-        updateTotalsAndRankings();
+        // Atualizar interface baseado nos dados
+        function updateInterface() {
+            const rows = document.querySelectorAll('#workoutTable tbody tr');
+            rows.forEach(row => {
+                const participant = row.dataset.participant;
+                const inputs = row.querySelectorAll('input[type="number"]');
+                inputs.forEach((input, index) => {
+                    input.value = currentData[participant]?.[index] || 0;
+                });
+            });
+            updateTotalsAndRankings();
+        }
+
+        // Função para salvar dados localmente
+        function updateLocalData(participant, weekIndex, value) {
+            if (!currentData[participant]) {
+                currentData[participant] = {};
+            }
+            currentData[participant][weekIndex] = parseInt(value);
+            hasUnsavedChanges = true;
+            document.getElementById('saveButton').disabled = false;
+        }
+
+        // Download dos dados como arquivo JSON
+        function downloadData() {
+            const dataStr = JSON.stringify({ workoutData: currentData }, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'data.json';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            showMessage('Dados exportados com sucesso!', 'success');
+            hasUnsavedChanges = false;
+            document.getElementById('saveButton').disabled = true;
+        }
+
+        // Atualizar a função updateWorkouts
+        function updateWorkouts(input) {
+            const newValue = Math.max(0, Math.min(3, parseInt(input.value) || 0));
+            input.value = newValue;
+            
+            const row = input.closest('tr');
+            const participant = row.dataset.participant;
+            const weekIndex = Array.from(row.cells).indexOf(input.closest('td'));
+            
+            updateLocalData(participant, weekIndex, newValue);
+            updateTotalsAndRankings();
+        }
+
+        // Inicialização
+        async function initialize() {
+            await loadData();
+            updateInterface();
+            
+            // Configurar botão de salvar
+            const saveButton = document.getElementById('saveButton');
+            saveButton.disabled = !hasUnsavedChanges;
+            saveButton.addEventListener('click', downloadData);
+        }
+
+        // Carregar dados quando a página iniciar
+        window.onload = initialize;
+
+        // Aviso antes de sair da página com alterações não salvas
+        window.onbeforeunload = function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                return 'Você tem alterações não salvas. Deseja realmente sair?';
+            }
+        };
     </script>
 </body>
 </html>
