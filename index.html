@@ -7,16 +7,25 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 p-4">
+    <!-- Config Modal -->
     <div id="configModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
         <div class="bg-white p-6 rounded-lg max-w-md w-full">
             <h2 class="text-xl font-bold mb-4">Configuração GitHub</h2>
             <div class="space-y-4">
                 <div>
-                    <label class="block mb-1">Token do GitHub *</label>
+                    <label class="block mb-1">Token do GitHub</label>
                     <input type="password" id="githubToken" class="w-full border p-2 rounded">
                 </div>
+                <div>
+                    <label class="block mb-1">Nome do Repositório (usuario/repo)</label>
+                    <input type="text" id="githubRepo" class="w-full border p-2 rounded">
+                </div>
+                <div>
+                    <label class="block mb-1">Caminho do arquivo (ex: data/fitness.json)</label>
+                    <input type="text" id="githubPath" class="w-full border p-2 rounded">
+                </div>
                 <button onclick="saveConfig()" class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Salvar
+                    Salvar Configuração
                 </button>
             </div>
         </div>
@@ -26,7 +35,7 @@
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-2xl font-bold">Desafio de Ginástica</h1>
             <button onclick="showConfig()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                Configurar
+                Configurar GitHub
             </button>
         </div>
         
@@ -81,53 +90,49 @@
         const ACTIVITY_VALUE = 10; // euros
         const ACTIVITIES_PER_WEEK = 3;
 
-        // Configuração GitHub
-        const githubConfig = {
-            repo: 'deamigliori/workout-tracker',
-            path: 'data.json',
-            branch: 'main'
-        };
-
         // Estado da aplicação
         let participants = [];
-        
-        // Funções de configuração
+        let githubConfig = {
+            token: '',
+            repo: '',
+            path: ''
+        };
+
+        // Funções de configuração GitHub
         function showConfig() {
             document.getElementById('configModal').classList.remove('hidden');
+            const config = JSON.parse(localStorage.getItem('githubConfig') || '{}');
+            document.getElementById('githubToken').value = config.token || '';
+            document.getElementById('githubRepo').value = config.repo || '';
+            document.getElementById('githubPath').value = config.path || '';
         }
 
         function saveConfig() {
-            const token = document.getElementById('githubToken').value;
-            if (!token) {
-                alert('Por favor, insira o token do GitHub');
-                return;
-            }
-            localStorage.setItem('githubToken', token);
+            githubConfig = {
+                token: document.getElementById('githubToken').value,
+                repo: document.getElementById('githubRepo').value,
+                path: document.getElementById('githubPath').value
+            };
+            localStorage.setItem('githubConfig', JSON.stringify(githubConfig));
             document.getElementById('configModal').classList.add('hidden');
-            loadData(); // Recarrega os dados com o novo token
+            loadData(); // Recarrega os dados com a nova configuração
         }
 
         // Funções GitHub API
         async function getGithubData() {
-            const token = localStorage.getItem('githubToken');
-            if (!token) {
-                showConfig();
-                return null;
-            }
-
             try {
-                const response = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-
-                if (response.status === 401) {
-                    localStorage.removeItem('githubToken');
+                const config = JSON.parse(localStorage.getItem('githubConfig'));
+                if (!config?.token || !config?.repo || !config?.path) {
                     showConfig();
                     return null;
                 }
+
+                const response = await fetch(`https://api.github.com/repos/${config.repo}/contents/${config.path}`, {
+                    headers: {
+                        'Authorization': `Bearer ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
 
                 if (response.status === 404) {
                     return null;
@@ -146,37 +151,30 @@
         }
 
         async function saveGithubData(data) {
-            const token = localStorage.getItem('githubToken');
-            if (!token) {
-                showConfig();
-                return;
-            }
-
             try {
+                const config = JSON.parse(localStorage.getItem('githubConfig'));
+                if (!config?.token || !config?.repo || !config?.path) {
+                    showConfig();
+                    return;
+                }
+
                 const currentData = await getGithubData();
                 const content = btoa(JSON.stringify(data, null, 2));
                 const body = {
                     message: 'Atualização dos dados do desafio de ginástica',
                     content,
-                    sha: currentData?.sha,
-                    branch: githubConfig.branch
+                    sha: currentData?.sha
                 };
 
-                const response = await fetch(`https://api.github.com/repos/${githubConfig.repo}/contents/${githubConfig.path}`, {
+                const response = await fetch(`https://api.github.com/repos/${config.repo}/contents/${config.path}`, {
                     method: 'PUT',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': `Bearer ${config.token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/vnd.github.v3+json'
                     },
                     body: JSON.stringify(body)
                 });
-
-                if (response.status === 401) {
-                    localStorage.removeItem('githubToken');
-                    showConfig();
-                    return;
-                }
 
                 if (!response.ok) {
                     throw new Error('Erro ao salvar no GitHub');
@@ -184,11 +182,159 @@
 
             } catch (error) {
                 console.error('Erro ao salvar dados no GitHub:', error);
-                alert('Erro ao salvar dados. Verifique o console para mais detalhes.');
+                alert('Erro ao salvar dados. Verifique sua configuração do GitHub.');
             }
         }
 
-        [... resto do código permanece igual ...]
+        // Carregar dados
+        async function loadData() {
+            try {
+                const data = await getGithubData();
+                if (data?.content) {
+                    participants = data.content;
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        // Calcular saldo inicial
+        function calculateInitialBalance() {
+            const weeks = Math.ceil((END_DATE - START_DATE) / (7 * 24 * 60 * 60 * 1000));
+            return -(weeks * ACTIVITIES_PER_WEEK * ACTIVITY_VALUE);
+        }
+
+        // Adicionar novo participante
+        async function addParticipant() {
+            const nameInput = document.getElementById('participantName');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert('Por favor, insira um nome válido.');
+                return;
+            }
+
+            if (participants.find(p => p.name === name)) {
+                alert('Este participante já existe.');
+                return;
+            }
+
+            participants.push({
+                name,
+                activities: [],
+                initialBalance: calculateInitialBalance()
+            });
+            
+            nameInput.value = '';
+            await saveGithubData(participants);
+            updateUI();
+        }
+
+        // Registrar atividade
+        async function registerActivity() {
+            const select = document.getElementById('participantSelect');
+            const dateInput = document.getElementById('activityDate');
+            const name = select.value;
+            const date = dateInput.value;
+
+            if (!name || !date) {
+                alert('Por favor, selecione um participante e uma data.');
+                return;
+            }
+
+            const participant = participants.find(p => p.name === name);
+            if (!participant) {
+                alert('Participante não encontrado.');
+                return;
+            }
+
+            const activityDate = new Date(date);
+            if (activityDate < START_DATE || activityDate > END_DATE) {
+                alert('A data deve estar dentro do período do desafio (06/01/2025 a 31/07/2025).');
+                return;
+            }
+
+            if (participant.activities.includes(date)) {
+                alert('Esta atividade já foi registrada.');
+                return;
+            }
+
+            participant.activities.push(date);
+            dateInput.value = '';
+            await saveGithubData(participants);
+            updateUI();
+        }
+
+        // Calcular saldo atual
+        function calculateBalance(participant) {
+            return participant.initialBalance + (participant.activities.length * ACTIVITY_VALUE);
+        }
+
+        // Encontrar líder
+        function findLeader() {
+            if (participants.length === 0) return null;
+            return participants.reduce((leader, current) => 
+                (current.activities.length > (leader?.activities.length || -1)) ? current : leader
+            , null);
+        }
+
+        // Atualizar interface
+        function updateUI() {
+            const table = document.getElementById('participantsTable');
+            const select = document.getElementById('participantSelect');
+            const leader = findLeader();
+
+            // Atualizar tabela
+            table.innerHTML = '';
+            select.innerHTML = '<option value="">Selecione um participante</option>';
+
+            participants.forEach(participant => {
+                const row = table.insertRow();
+                const isLeader = leader && participant.name === leader.name;
+                
+                if (isLeader) {
+                    row.classList.add('bg-green-100');
+                }
+
+                row.innerHTML = `
+                    <td class="p-2">${participant.name}</td>
+                    <td class="p-2 text-center">${participant.activities.length}</td>
+                    <td class="p-2 text-center">${calculateBalance(participant)}€</td>
+                    <td class="p-2 text-center">
+                        <button onclick="removeParticipant('${participant.name}')"
+                                class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
+                            Remover
+                        </button>
+                    </td>
+                `;
+
+                // Atualizar select
+                const option = document.createElement('option');
+                option.value = participant.name;
+                option.textContent = participant.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Remover participante
+        async function removeParticipant(name) {
+            if (confirm(`Tem certeza que deseja remover ${name}?`)) {
+                participants = participants.filter(p => p.name !== name);
+                await saveGithubData(participants);
+                updateUI();
+            }
+        }
+
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', () => {
+            const config = JSON.parse(localStorage.getItem('githubConfig') || '{}');
+            if (!config.token || !config.repo || !config.path) {
+                showConfig();
+            } else {
+                loadData();
+            }
+        });
     </script>
 </body>
 </html>
