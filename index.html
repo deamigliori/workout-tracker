@@ -84,7 +84,6 @@
             padding: 15px;
             border-radius: 4px;
             margin-top: 20px;
-            font-size: 14px;
         }
 
         .progress-bar-container {
@@ -119,6 +118,17 @@
             border-left: 3px solid #ddd;
         }
 
+        .syncing {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+        }
+
         @media screen and (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -149,6 +159,8 @@
     </style>
 </head>
 <body>
+    <div id="syncing" class="syncing">Sincronizando...</div>
+    
     <div class="container">
         <h1 style="text-align: center; margin-bottom: 20px;">Controle do Desafio de Ginástica</h1>
         
@@ -226,11 +238,17 @@
     </div>
 
     <script>
-        // Configurações do desafio
         const startDate = new Date('2025-01-06');
         const endDate = new Date('2025-07-31');
         const participants = ['Andréa', 'Cláudia', 'Isabela', 'Fabiana'];
-        
+        let cachedData = null;
+        let isSyncing = false;
+
+        // Função para mostrar/esconder indicador de sincronização
+        function toggleSyncing(show) {
+            document.getElementById('syncing').style.display = show ? 'block' : 'none';
+        }
+
         // Gerar datas das semanas
         function generateWeeks() {
             const weeks = [];
@@ -242,8 +260,8 @@
                 weekEnd.setDate(weekEnd.getDate() + 6);
                 
                 weeks.push({
-                    start: weekStart.toLocaleDateString('pt-BR'),
-                    end: weekEnd.toLocaleDateString('pt-BR')
+                    start: formatDate(weekStart),
+                    end: formatDate(weekEnd)
                 });
                 
                 currentDate.setDate(currentDate.getDate() + 7);
@@ -252,21 +270,38 @@
             return weeks;
         }
 
-        // Carregar dados salvos
-        function loadSavedData() {
-            const savedData = localStorage.getItem('workoutData');
-            return savedData ? JSON.parse(savedData) : {};
+        // Formatar data
+        function formatDate(date) {
+            return date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
         }
 
-        // Salvar dados
-        function saveData(data) {
-            localStorage.setItem('workoutData', JSON.stringify(data));
+        // Carregar dados do arquivo data.json
+        async function loadData() {
+            try {
+                toggleSyncing(true);
+                const response = await fetch('data.json?' + new Date().getTime());
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar dados');
+                }
+                const data = await response.json();
+                cachedData = data.workoutData || {};
+                return cachedData;
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                return {};
+            } finally {
+                toggleSyncing(false);
+            }
         }
 
         // Inicializar tabela
-        function initializeTable() {
+        async function initializeTable() {
             const weeks = generateWeeks();
-            const savedData = loadSavedData();
+            const savedData = await loadData();
             const headerRow = document.getElementById('headerRow');
             const tbody = document.querySelector('#workoutTable tbody');
             
@@ -291,7 +326,7 @@
                     input.max = '3';
                     input.value = savedData[participant]?.[weekIndex] || 0;
                     input.onchange = function() {
-                        updateWorkouts(this);
+                        handleWorkoutUpdate(this);
                     };
                     cell.appendChild(input);
                     row.appendChild(cell);
@@ -303,24 +338,7 @@
             updateTotalsAndRankings();
         }
 
-        function updateWorkouts(input) {
-            input.value = Math.max(0, Math.min(3, parseInt(input.value) || 0));
-            
-            // Salvar dados
-            const savedData = loadSavedData();
-            const row = input.closest('tr');
-            const participant = row.dataset.participant;
-            const weekIndex = Array.from(row.cells).indexOf(input.closest('td'));
-            
-            if (!savedData[participant]) {
-                savedData[participant] = {};
-            }
-            savedData[participant][weekIndex] = parseInt(input.value);
-            saveData(savedData);
-            
-            updateTotalsAndRankings();
-        }
-
+        // Atualizar totais e rankings
         function updateTotalsAndRankings() {
             const weeks = generateWeeks();
             const rows = document.querySelectorAll('#workoutTable tbody tr');
@@ -389,8 +407,34 @@
             }
         }
 
-        // Inicializar a planilha
-        initializeTable();
-    </script>
-</body>
-</html>
+        // Manipular atualização de atividades
+        let updateTimeout;
+        async function handleWorkoutUpdate(input) {
+            input.value = Math.max(0, Math.min(3, parseInt(input.value) || 0));
+            
+            const row = input.closest('tr');
+            const participant = row.dataset.participant;
+            const weekIndex = Array.from(row.cells).indexOf(input.closest('td'));
+            
+            // Atualizar dados em cache
+            if (!cachedData[participant]) {
+                cachedData[participant] = {};
+            }
+            cachedData[participant][weekIndex] = parseInt(input.value);
+            
+            // Atualizar UI
+            updateTotalsAndRankings();
+            
+            // Debounce para evitar muitas atualizações
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(async () => {
+                try {
+                    toggleSyncing(true);
+                    // Atualizar localStorage como backup
+                    localStorage.setItem('workoutDataBackup', JSON.stringify(cachedData));
+                    
+                    // Tentar carregar dados mais recentes antes de atualizar
+                    await loadData();
+                    // Mesclar dados locais com dados do servidor
+                    if (!cachedData[participant]) {
+                        cachedData
