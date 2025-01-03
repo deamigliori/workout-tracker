@@ -2,95 +2,31 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-        }
-
         .container {
-            padding: 20px;
-            width: 100%;
-        }
-
-        .table-container {
-            position: relative;
-            margin: 20px 0;
-            border: 1px solid #ddd;
-        }
-
-        /* Tabela de nomes (fixa à esquerda) */
-        .names-table {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 120px;
-            background: white;
-            z-index: 2;
-            border-right: 2px solid #ddd;
-        }
-
-        .names-table th,
-        .names-table td {
-            border-bottom: 1px solid #ddd;
-            padding: 8px;
-            height: 41px; /* Garante alinhamento com a tabela principal */
-            background: white;
-        }
-
-        /* Container de rolagem */
-        .scroll-container {
+            max-width: 100%;
             overflow-x: auto;
-            margin-left: 120px; /* Largura da tabela de nomes */
-            padding-bottom: 15px; /* Espaço para barra de rolagem */
+            font-family: Arial, sans-serif;
+            padding: 20px;
         }
-
-        /* Tabela principal */
-        .main-table {
+        
+        table {
             border-collapse: collapse;
-            min-width: 100%;
-            background: white;
+            width: 100%;
+            margin-bottom: 20px;
         }
-
-        .main-table th,
-        .main-table td {
+        
+        th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
-            min-width: 100px;
         }
-
-        .main-table th {
-            background: #f5f5f5;
-            position: sticky;
-            top: 0;
-            z-index: 1;
+        
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
         }
-
-        /* Tabela de totais (fixa à direita) */
-        .totals-table {
-            position: absolute;
-            right: 0;
-            top: 0;
-            background: white;
-            z-index: 2;
-            border-left: 2px solid #ddd;
-        }
-
-        .totals-table th,
-        .totals-table td {
-            border-bottom: 1px solid #ddd;
-            padding: 8px;
-            height: 41px;
-        }
-
-        /* Estilos comuns */
+        
         input[type="number"] {
             width: 50px;
             padding: 5px;
@@ -98,129 +34,102 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-
-        .leader { background-color: #e8f5e9 !important; }
-        .last-place { background-color: #ffebee !important; }
-
-        .progress-container {
-            width: 150px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            overflow: hidden;
+        
+        .leader {
+            background-color: #e8f5e9;
         }
-
-        .progress-bar {
-            height: 20px;
-            border-radius: 10px;
-            transition: width 0.5s;
-            color: white;
-            text-align: right;
-            padding-right: 5px;
-            font-size: 12px;
-            line-height: 20px;
+        
+        .last-place {
+            background-color: #ffebee;
         }
-
-        .progress-level-1 { background-color: #9e9e9e; }
-        .progress-level-2 { background-color: #9c27b0; }
-        .progress-level-3 { background-color: #2196f3; }
-        .progress-level-4 { background-color: #4caf50; }
-
+        
         .info-box {
-            background: #f5f5f5;
+            background-color: #f5f5f5;
             padding: 15px;
             border-radius: 4px;
             margin-top: 20px;
         }
-
-        .syncing {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
+        
+        .progress-bar-container {
+            width: 100%;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 5px;
             color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            display: none;
+            font-size: 12px;
         }
-
-        @media screen and (max-width: 768px) {
-            .container { padding: 10px; }
-            input[type="number"] { 
-                width: 40px;
-                padding: 3px;
-            }
-            .names-table { width: 100px; }
-            .scroll-container { margin-left: 100px; }
-        }
+        
+        .progress-level-1 { background-color: #9e9e9e; }
+        .progress-level-2 { background-color: #9c27b0; }
+        .progress-level-3 { background-color: #2196f3; }
+        .progress-level-4 { background-color: #4caf50; }
     </style>
 </head>
 <body>
-    <div id="syncing" class="syncing">Sincronizando...</div>
-
     <div class="container">
-        <h1 style="text-align: center; margin-bottom: 20px;">Controle do Desafio de Ginástica</h1>
-
-        <div class="table-container">
-            <!-- Tabela de nomes (fixa à esquerda) -->
-            <div class="names-table">
-                <table>
-                    <thead>
-                        <tr><th>Participante</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Andréa</td></tr>
-                        <tr><td>Cláudia</td></tr>
-                        <tr><td>Isabela</td></tr>
-                        <tr><td>Fabiana</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Container com rolagem horizontal -->
-            <div class="scroll-container">
-                <table class="main-table" id="workoutTable">
-                    <thead>
-                        <tr id="headerRow"></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <!-- Tabela de totais (fixa à direita) -->
-            <div class="totals-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Total</th>
-                            <th>Saldo (€)</th>
-                            <th>Progresso</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="total">0</td>
-                            <td class="balance">0</td>
-                            <td class="progress"></td>
-                        </tr>
-                        <tr>
-                            <td class="total">0</td>
-                            <td class="balance">0</td>
-                            <td class="progress"></td>
-                        </tr>
-                        <tr>
-                            <td class="total">0</td>
-                            <td class="balance">0</td>
-                            <td class="progress"></td>
-                        </tr>
-                        <tr>
-                            <td class="total">0</td>
-                            <td class="balance">0</td>
-                            <td class="progress"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <h1 style="text-align: center;">Controle do Desafio de Ginástica</h1>
+        
+        <table id="workoutTable">
+            <thead>
+                <tr>
+                    <th>Participante</th>
+                    <th>Semana 1<br>06/01 - 12/01</th>
+                    <th>Semana 2<br>13/01 - 19/01</th>
+                    <th>Semana 3<br>20/01 - 26/01</th>
+                    <th>Total Atividades</th>
+                    <th>Saldo (€)</th>
+                    <th>Progresso</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-participant="Andrea">
+                    <td>Andréa</td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td class="total">0</td>
+                    <td class="balance">0</td>
+                    <td class="progress"></td>
+                </tr>
+                <tr data-participant="Claudia">
+                    <td>Cláudia</td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td class="total">0</td>
+                    <td class="balance">0</td>
+                    <td class="progress"></td>
+                </tr>
+                <tr data-participant="Isabela">
+                    <td>Isabela</td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td class="total">0</td>
+                    <td class="balance">0</td>
+                    <td class="progress"></td>
+                </tr>
+                <tr data-participant="Fabiana">
+                    <td>Fabiana</td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td><input type="number" min="0" max="3" value="0" onchange="updateWorkouts(this)"></td>
+                    <td class="total">0</td>
+                    <td class="balance">0</td>
+                    <td class="progress"></td>
+                </tr>
+            </tbody>
+        </table>
 
         <div class="info-box">
             <h3>Informações do Desafio:</h3>
@@ -233,113 +142,35 @@
     </div>
 
     <script>
-        const startDate = new Date('2025-01-06');
-        const endDate = new Date('2025-07-31');
-        const participants = ['Andréa', 'Cláudia', 'Isabela', 'Fabiana'];
-        let cachedData = null;
-
-        function generateWeeks() {
-            const weeks = [];
-            let currentDate = new Date(startDate);
-            while (currentDate <= endDate) {
-                const weekStart = new Date(currentDate);
-                const weekEnd = new Date(currentDate);
-                weekEnd.setDate(weekEnd.getDate() + 6);
-                weeks.push({
-                    start: formatDate(weekStart),
-                    end: formatDate(weekEnd)
-                });
-                currentDate.setDate(currentDate.getDate() + 7);
-            }
-            return weeks;
-        }
-
-        function formatDate(date) {
-            return date.toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-        }
-
-        async function loadData() {
-            try {
-                document.getElementById('syncing').style.display = 'block';
-                const response = await fetch('data.json?' + new Date().getTime());
-                if (!response.ok) throw new Error('Erro ao carregar dados');
-                const data = await response.json();
-                cachedData = data.workoutData || {};
-                return cachedData;
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                return {};
-            } finally {
-                document.getElementById('syncing').style.display = 'none';
-            }
-        }
-
-        async function initializeTable() {
-            const weeks = generateWeeks();
-            const savedData = await loadData();
-            const headerRow = document.getElementById('headerRow');
-            const tbody = document.querySelector('#workoutTable tbody');
-            
-            // Limpar conteúdo existente
-            headerRow.innerHTML = '';
-            tbody.innerHTML = '';
-            
-            // Criar cabeçalhos
-            weeks.forEach((week, index) => {
-                const th = document.createElement('th');
-                th.innerHTML = `Semana ${index + 1}<br>${week.start} - ${week.end}`;
-                headerRow.appendChild(th);
-            });
-            
-            // Criar linhas para cada participante
-            participants.forEach(participant => {
-                const row = document.createElement('tr');
-                row.dataset.participant = participant;
-                
-                weeks.forEach((_, weekIndex) => {
-                    const td = document.createElement('td');
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.min = '0';
-                    input.max = '3';
-                    input.value = savedData[participant]?.[weekIndex] || 0;
-                    input.onchange = handleWorkoutUpdate;
-                    td.appendChild(input);
-                    row.appendChild(td);
-                });
-                
-                tbody.appendChild(row);
-            });
+        function updateWorkouts(input) {
+            // Limita o valor entre 0 e 3
+            input.value = Math.max(0, Math.min(3, parseInt(input.value) || 0));
             
             updateTotalsAndRankings();
         }
 
         function updateTotalsAndRankings() {
-            const weeks = generateWeeks();
             const rows = document.querySelectorAll('#workoutTable tbody tr');
             let maxTotal = 0;
             let minTotal = Infinity;
             let totals = [];
 
-            rows.forEach((row, rowIndex) => {
-                const inputs = row.querySelectorAll('input');
+            // Calcular totais e encontrar máximo/mínimo
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input[type="number"]');
                 const total = Array.from(inputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
-                const participant = row.dataset.participant;
-
-                // Atualizar células de total e saldo
-                const totalCells = document.querySelectorAll('.total');
-                const balanceCells = document.querySelectorAll('.balance');
-                const progressCells = document.querySelectorAll('.progress');
-
-                totalCells[rowIndex].textContent = total;
-
-                const totalWeeks = weeks.length;
-                const balance = (total * 10) - (totalWeeks * 3 * 10);
-                balanceCells[rowIndex].textContent = balance + '€';
+                const totalCell = row.querySelector('.total');
+                const balanceCell = row.querySelector('.balance');
+                const progressCell = row.querySelector('.progress');
+                
+                totalCell.textContent = total;
+                
+                // Calcular saldo (10€ por atividade realizada - débito total)
+                const totalWeeks = inputs.length;
+                const requiredPerWeek = 3;
+                const totalRequired = totalWeeks * requiredPerWeek;
+                const balance = (total * 10) - (totalRequired * 10);
+                balanceCell.textContent = balance + '€';
 
                 // Atualizar barra de progresso
                 const maxPossible = totalWeeks * 3;
@@ -350,8 +181,8 @@
                 else if (percentage >= 50) progressClass = 'progress-level-3';
                 else if (percentage >= 20) progressClass = 'progress-level-2';
 
-                progressCells[rowIndex].innerHTML = `
-                    <div class="progress-container">
+                progressCell.innerHTML = `
+                    <div class="progress-bar-container">
                         <div class="progress-bar ${progressClass}" style="width: ${percentage}%">
                             ${Math.round(percentage)}%
                         </div>
@@ -360,13 +191,12 @@
 
                 maxTotal = Math.max(maxTotal, total);
                 minTotal = Math.min(minTotal, total);
-                totals.push({ name: participant, total });
+                totals.push({ name: row.dataset.participant, total });
             });
 
-            // Atualizar líderes e últimos
-            const nameRows = document.querySelectorAll('.names-table tbody tr');
-            nameRows.forEach((row, index) => {
-                const total = parseInt(document.querySelectorAll('.total')[index].textContent);
+            // Atualizar classes de liderança
+            rows.forEach(row => {
+                const total = parseInt(row.querySelector('.total').textContent);
                 row.classList.remove('leader', 'last-place');
                 if (total === maxTotal && total > 0) row.classList.add('leader');
                 if (total === minTotal && total > 0) row.classList.add('last-place');
@@ -385,29 +215,8 @@
             }
         }
 
-        let updateTimeout;
-        async function handleWorkoutUpdate(event) {
-            const input = event.target;
-            input.value = Math.max(0, Math.min(3, parseInt(input.value) || 0));
-            
-            const row = input.closest('tr');
-            const participant = row.dataset.participant;
-            const weekIndex = Array.from(row.children).indexOf(input.parentElement);
-            
-            if (!cachedData[participant]) cachedData[participant] = {};
-            cachedData[participant][weekIndex] = parseInt(input.value);
-            
-            updateTotalsAndRankings();
-            
-            // Debounce para evitar muitas atualizações
-            clearTimeout(updateTimeout);
-            updateTimeout = setTimeout(() => {
-                localStorage.setItem('workoutDataBackup', JSON.stringify(cachedData));
-            }, 1000);
-        }
-
-        // Inicializar a tabela quando a página carregar
-        window.addEventListener('load', initializeTable);
+        // Inicializar a planilha
+        updateTotalsAndRankings();
     </script>
 </body>
 </html>
