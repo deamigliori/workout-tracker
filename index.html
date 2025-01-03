@@ -7,37 +7,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 p-4">
-    <!-- Config Modal -->
-    <div id="configModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg max-w-md w-full">
-            <h2 class="text-xl font-bold mb-4">Configuração GitHub</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block mb-1">Token do GitHub</label>
-                    <input type="password" id="githubToken" class="w-full border p-2 rounded">
-                </div>
-                <div>
-                    <label class="block mb-1">Nome do Repositório (usuario/repo)</label>
-                    <input type="text" id="githubRepo" class="w-full border p-2 rounded">
-                </div>
-                <div>
-                    <label class="block mb-1">Caminho do arquivo (ex: data/fitness.json)</label>
-                    <input type="text" id="githubPath" class="w-full border p-2 rounded">
-                </div>
-                <button onclick="saveConfig()" class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Salvar Configuração
-                </button>
-            </div>
-        </div>
-    </div>
-
     <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold">Desafio de Ginástica</h1>
-            <button onclick="showConfig()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                Configurar GitHub
-            </button>
-        </div>
+        <h1 class="text-2xl font-bold mb-4 text-center">Desafio de Ginástica</h1>
         
         <!-- Formulário para adicionar participantes -->
         <div class="mb-6 bg-white p-4 rounded-lg shadow">
@@ -89,124 +60,50 @@
         const END_DATE = new Date('2025-07-31');
         const ACTIVITY_VALUE = 10; // euros
         const ACTIVITIES_PER_WEEK = 3;
+        const STORAGE_KEY = 'fitnessChallenge2025';
 
         // Estado da aplicação
         let participants = [];
-        let githubConfig = {
-            token: '',
-            repo: '',
-            path: ''
-        };
 
-        // Funções de configuração GitHub
-        function showConfig() {
-            document.getElementById('configModal').classList.remove('hidden');
-            const config = JSON.parse(localStorage.getItem('githubConfig') || '{}');
-            document.getElementById('githubToken').value = config.token || '';
-            document.getElementById('githubRepo').value = config.repo || '';
-            document.getElementById('githubPath').value = config.path || '';
-        }
-
-        function saveConfig() {
-            githubConfig = {
-                token: document.getElementById('githubToken').value,
-                repo: document.getElementById('githubRepo').value,
-                path: document.getElementById('githubPath').value
-            };
-            localStorage.setItem('githubConfig', JSON.stringify(githubConfig));
-            document.getElementById('configModal').classList.add('hidden');
-            loadData(); // Recarrega os dados com a nova configuração
-        }
-
-        // Funções GitHub API
-        async function getGithubData() {
+        // Carregar dados do localStorage
+        function loadData() {
             try {
-                const config = JSON.parse(localStorage.getItem('githubConfig'));
-                if (!config?.token || !config?.repo || !config?.path) {
-                    showConfig();
-                    return null;
-                }
-
-                const response = await fetch(`https://api.github.com/repos/${config.repo}/contents/${config.path}`, {
-                    headers: {
-                        'Authorization': `Bearer ${config.token}`,
-                        'Accept': 'application/vnd.github.v3+json'
+                const saved = localStorage.getItem(STORAGE_KEY);
+                console.log('Dados carregados:', saved);
+                if (saved) {
+                    participants = JSON.parse(saved);
+                    if (!Array.isArray(participants)) {
+                        console.error('Dados inválidos no localStorage');
+                        participants = [];
                     }
-                });
-
-                if (response.status === 404) {
-                    return null;
                 }
-
-                const data = await response.json();
-                if (data.content) {
-                    const content = JSON.parse(atob(data.content));
-                    return { content, sha: data.sha };
-                }
-                return null;
-            } catch (error) {
-                console.error('Erro ao carregar dados do GitHub:', error);
-                return null;
-            }
-        }
-
-        async function saveGithubData(data) {
-            try {
-                const config = JSON.parse(localStorage.getItem('githubConfig'));
-                if (!config?.token || !config?.repo || !config?.path) {
-                    showConfig();
-                    return;
-                }
-
-                const currentData = await getGithubData();
-                const content = btoa(JSON.stringify(data, null, 2));
-                const body = {
-                    message: 'Atualização dos dados do desafio de ginástica',
-                    content,
-                    sha: currentData?.sha
-                };
-
-                const response = await fetch(`https://api.github.com/repos/${config.repo}/contents/${config.path}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${config.token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/vnd.github.v3+json'
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Erro ao salvar no GitHub');
-                }
-
-            } catch (error) {
-                console.error('Erro ao salvar dados no GitHub:', error);
-                alert('Erro ao salvar dados. Verifique sua configuração do GitHub.');
-            }
-        }
-
-        // Carregar dados
-        async function loadData() {
-            try {
-                const data = await getGithubData();
-                if (data?.content) {
-                    participants = data.content;
-                    updateUI();
-                }
+                updateUI();
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
+                participants = [];
             }
         }
 
-        // Calcular saldo inicial
+        // Salvar dados no localStorage
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(participants));
+                console.log('Dados salvos:', participants);
+                updateUI();
+            } catch (error) {
+                console.error('Erro ao salvar dados:', error);
+                alert('Erro ao salvar os dados. Verifique se seu navegador permite armazenamento local.');
+            }
+        }
+
+        // Calcular saldo inicial (débito total do período)
         function calculateInitialBalance() {
             const weeks = Math.ceil((END_DATE - START_DATE) / (7 * 24 * 60 * 60 * 1000));
             return -(weeks * ACTIVITIES_PER_WEEK * ACTIVITY_VALUE);
         }
 
         // Adicionar novo participante
-        async function addParticipant() {
+        function addParticipant() {
             const nameInput = document.getElementById('participantName');
             const name = nameInput.value.trim();
             
@@ -227,12 +124,11 @@
             });
             
             nameInput.value = '';
-            await saveGithubData(participants);
-            updateUI();
+            saveData();
         }
 
         // Registrar atividade
-        async function registerActivity() {
+        function registerActivity() {
             const select = document.getElementById('participantSelect');
             const dateInput = document.getElementById('activityDate');
             const name = select.value;
@@ -262,8 +158,7 @@
 
             participant.activities.push(date);
             dateInput.value = '';
-            await saveGithubData(participants);
-            updateUI();
+            saveData();
         }
 
         // Calcular saldo atual
@@ -318,23 +213,37 @@
         }
 
         // Remover participante
-        async function removeParticipant(name) {
+        function removeParticipant(name) {
             if (confirm(`Tem certeza que deseja remover ${name}?`)) {
                 participants = participants.filter(p => p.name !== name);
-                await saveGithubData(participants);
-                updateUI();
+                saveData();
+            }
+        }
+
+        // Verificar suporte a localStorage
+        function checkLocalStorage() {
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                return true;
+            } catch (e) {
+                alert('Seu navegador não suporta armazenamento local. Os dados não serão salvos entre as sessões.');
+                return false;
             }
         }
 
         // Inicializar aplicação
         document.addEventListener('DOMContentLoaded', () => {
-            const config = JSON.parse(localStorage.getItem('githubConfig') || '{}');
-            if (!config.token || !config.repo || !config.path) {
-                showConfig();
-            } else {
+            if (checkLocalStorage()) {
                 loadData();
+                console.log('Aplicação inicializada com sucesso');
             }
         });
+
+        // Carregar dados imediatamente também (caso o DOMContentLoaded já tenha ocorrido)
+        if (document.readyState === 'complete') {
+            loadData();
+        }
     </script>
 </body>
 </html>
