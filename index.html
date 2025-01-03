@@ -4,210 +4,180 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Desafio de Ginástica</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            padding: 1rem;
-            background-color: #f5f5f5;
-        }
-
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            background-color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .title {
-            text-align: center;
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
-        .participants {
-            display: grid;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        @media (min-width: 768px) {
-            .participants {
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            }
-        }
-
-        .participant-card {
-            padding: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        .participant-card.leader {
-            background-color: #e6ffe6;
-            border-color: #4CAF50;
-        }
-
-        .activity-input {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        input[type="date"] {
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            flex: 1;
-        }
-
-        button {
-            padding: 0.5rem 1rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .stats {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .negative {
-            color: #f44336;
-        }
-
-        .positive {
-            color: #4CAF50;
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <h1 class="title">Desafio de Ginástica</h1>
-        <div class="participants" id="participants"></div>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4 text-center">Desafio de Ginástica</h1>
+        
+        <!-- Formulário para adicionar participantes -->
+        <div class="mb-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl mb-2">Adicionar Participante</h2>
+            <div class="flex flex-wrap gap-2">
+                <input type="text" id="participantName" placeholder="Nome do participante" 
+                       class="border p-2 rounded flex-1">
+                <button onclick="addParticipant()" 
+                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Adicionar
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabela de participantes -->
+        <div class="bg-white p-4 rounded-lg shadow overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="p-2 text-left">Participante</th>
+                        <th class="p-2 text-center">Atividades Realizadas</th>
+                        <th class="p-2 text-center">Saldo (€)</th>
+                        <th class="p-2 text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="participantsTable"></tbody>
+            </table>
+        </div>
+
+        <!-- Registro de atividade -->
+        <div class="mt-6 bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl mb-2">Registrar Atividade</h2>
+            <div class="flex flex-wrap gap-2">
+                <select id="participantSelect" class="border p-2 rounded flex-1">
+                    <option value="">Selecione um participante</option>
+                </select>
+                <input type="date" id="activityDate" class="border p-2 rounded">
+                <button onclick="registerActivity()" 
+                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Registrar
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
-        const startDate = new Date('2025-01-06');
-        const endDate = new Date('2025-07-31');
-        const participantNames = ['Participante 1', 'Participante 2', 'Participante 3', 'Participante 4', 'Participante 5'];
+        // Constantes
+        const START_DATE = new Date('2025-01-06');
+        const END_DATE = new Date('2025-07-31');
         const ACTIVITY_VALUE = 10; // euros
+        const ACTIVITIES_PER_WEEK = 3;
 
-        let participants = loadParticipants() || initializeParticipants();
+        // Estado da aplicação
+        let participants = [];
 
-        function initializeParticipants() {
-            return participantNames.map(name => ({
-                name,
-                activities: [],
-                balance: calculateInitialBalance()
-            }));
-        }
-
-        function calculateInitialBalance() {
-            let weeks = 0;
-            let currentDate = new Date(startDate);
-            while (currentDate <= endDate) {
-                weeks++;
-                currentDate.setDate(currentDate.getDate() + 7);
-            }
-            return -(weeks * 3 * ACTIVITY_VALUE); // 3 activities per week
-        }
-
-        function loadParticipants() {
+        // Carregar dados do localStorage
+        function loadData() {
             const saved = localStorage.getItem('fitnessChallenge');
             if (saved) {
-                const parsed = JSON.parse(saved);
-                parsed.forEach(p => {
-                    p.activities = p.activities.map(a => new Date(a));
-                });
-                return parsed;
+                participants = JSON.parse(saved);
+                updateUI();
             }
-            return null;
         }
 
-        function saveParticipants() {
+        // Salvar dados no localStorage
+        function saveData() {
             localStorage.setItem('fitnessChallenge', JSON.stringify(participants));
+            updateUI();
         }
 
-        function addActivity(participantIndex, date) {
-            const participant = participants[participantIndex];
-            if (!participant.activities.some(a => a.toDateString() === date.toDateString())) {
-                participant.activities.push(date);
-                participant.balance += ACTIVITY_VALUE;
-                saveParticipants();
-                renderParticipants();
-            } else {
-                alert('Atividade já registrada para esta data!');
+        // Calcular saldo inicial (débito total do período)
+        function calculateInitialBalance() {
+            const weeks = Math.ceil((END_DATE - START_DATE) / (7 * 24 * 60 * 60 * 1000));
+            return -(weeks * ACTIVITIES_PER_WEEK * ACTIVITY_VALUE);
+        }
+
+        // Adicionar novo participante
+        function addParticipant() {
+            const nameInput = document.getElementById('participantName');
+            const name = nameInput.value.trim();
+            
+            if (name && !participants.find(p => p.name === name)) {
+                participants.push({
+                    name,
+                    activities: [],
+                    initialBalance: calculateInitialBalance()
+                });
+                nameInput.value = '';
+                saveData();
             }
         }
 
-        function getLeaderIndex() {
-            return participants.reduce((maxIndex, current, index, array) => 
-                current.activities.length > array[maxIndex].activities.length ? index : maxIndex
-            , 0);
+        // Registrar atividade
+        function registerActivity() {
+            const select = document.getElementById('participantSelect');
+            const dateInput = document.getElementById('activityDate');
+            const name = select.value;
+            const date = dateInput.value;
+
+            if (name && date) {
+                const participant = participants.find(p => p.name === name);
+                if (participant && !participant.activities.includes(date)) {
+                    participant.activities.push(date);
+                    dateInput.value = '';
+                    saveData();
+                }
+            }
         }
 
-        function renderParticipants() {
-            const container = document.getElementById('participants');
-            container.innerHTML = '';
-            const leaderIndex = getLeaderIndex();
+        // Calcular saldo atual
+        function calculateBalance(participant) {
+            return participant.initialBalance + (participant.activities.length * ACTIVITY_VALUE);
+        }
 
-            participants.forEach((participant, index) => {
-                const card = document.createElement('div');
-                card.className = `participant-card ${index === leaderIndex ? 'leader' : ''}`;
+        // Encontrar líder
+        function findLeader() {
+            return participants.reduce((leader, current) => 
+                (current.activities.length > (leader?.activities.length || -1)) ? current : leader
+            , null);
+        }
+
+        // Atualizar interface
+        function updateUI() {
+            const table = document.getElementById('participantsTable');
+            const select = document.getElementById('participantSelect');
+            const leader = findLeader();
+
+            // Atualizar tabela
+            table.innerHTML = '';
+            select.innerHTML = '<option value="">Selecione um participante</option>';
+
+            participants.forEach(participant => {
+                const row = table.insertRow();
+                const isLeader = leader && participant.name === leader.name;
                 
-                card.innerHTML = `
-                    <h2>${participant.name}</h2>
-                    <div class="stats">
-                        <p>Atividades realizadas: ${participant.activities.length}</p>
-                        <p>Saldo: <span class="${participant.balance >= 0 ? 'positive' : 'negative'}">€${participant.balance}</span></p>
-                    </div>
-                    <div class="activity-input">
-                        <input type="date" 
-                            min="${startDate.toISOString().split('T')[0]}"
-                            max="${endDate.toISOString().split('T')[0]}"
-                        >
-                        <button onclick="handleAddActivity(${index}, this)">Registrar</button>
-                    </div>
+                if (isLeader) {
+                    row.classList.add('bg-green-100');
+                }
+
+                row.innerHTML = `
+                    <td class="p-2">${participant.name}</td>
+                    <td class="p-2 text-center">${participant.activities.length}</td>
+                    <td class="p-2 text-center">${calculateBalance(participant)}€</td>
+                    <td class="p-2 text-center">
+                        <button onclick="removeParticipant('${participant.name}')"
+                                class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
+                            Remover
+                        </button>
+                    </td>
                 `;
 
-                container.appendChild(card);
+                // Atualizar select
+                const option = document.createElement('option');
+                option.value = participant.name;
+                option.textContent = participant.name;
+                select.appendChild(option);
             });
         }
 
-        function handleAddActivity(index, button) {
-            const dateInput = button.parentElement.querySelector('input[type="date"]');
-            if (dateInput.value) {
-                const date = new Date(dateInput.value);
-                if (date >= startDate && date <= endDate) {
-                    addActivity(index, date);
-                    dateInput.value = '';
-                } else {
-                    alert('Data fora do período do desafio!');
-                }
-            } else {
-                alert('Selecione uma data!');
+        // Remover participante
+        function removeParticipant(name) {
+            if (confirm(`Tem certeza que deseja remover ${name}?`)) {
+                participants = participants.filter(p => p.name !== name);
+                saveData();
             }
         }
 
-        // Inicialização
-        renderParticipants();
+        // Inicializar aplicação
+        loadData();
     </script>
 </body>
 </html>
