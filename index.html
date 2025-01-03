@@ -10,59 +10,87 @@
             padding: 0;
         }
 
-        .container {
-            width: 100%;
-            padding: 20px;
+        body {
             font-family: Arial, sans-serif;
         }
 
-        .table-wrapper {
+        .container {
+            padding: 20px;
+            width: 100%;
+        }
+
+        .table-container {
             position: relative;
-            margin-top: 20px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
         }
 
-        .table-scroll {
-            overflow-x: auto;
-            margin-left: 150px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: max-content;
-            background-color: white;
-        }
-
-        .fixed-column {
+        /* Tabela de nomes (fixa à esquerda) */
+        .names-table {
             position: absolute;
-            width: 150px;
             left: 0;
-            top: auto;
-            border-right: 3px solid #ddd;
-            background-color: white;
+            top: 0;
+            width: 120px;
+            background: white;
+            z-index: 2;
+            border-right: 2px solid #ddd;
         }
 
-        .fixed-column th,
-        .fixed-column td {
-            border-right: none;
+        .names-table th,
+        .names-table td {
+            border-bottom: 1px solid #ddd;
+            padding: 8px;
+            height: 41px; /* Garante alinhamento com a tabela principal */
+            background: white;
         }
 
-        th, td {
+        /* Container de rolagem */
+        .scroll-container {
+            overflow-x: auto;
+            margin-left: 120px; /* Largura da tabela de nomes */
+            padding-bottom: 15px; /* Espaço para barra de rolagem */
+        }
+
+        /* Tabela principal */
+        .main-table {
+            border-collapse: collapse;
+            min-width: 100%;
+            background: white;
+        }
+
+        .main-table th,
+        .main-table td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
             min-width: 100px;
         }
 
-        th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-            white-space: nowrap;
+        .main-table th {
+            background: #f5f5f5;
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
 
-        .week-column {
-            min-width: 120px;
+        /* Tabela de totais (fixa à direita) */
+        .totals-table {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: white;
+            z-index: 2;
+            border-left: 2px solid #ddd;
         }
 
+        .totals-table th,
+        .totals-table td {
+            border-bottom: 1px solid #ddd;
+            padding: 8px;
+            height: 41px;
+        }
+
+        /* Estilos comuns */
         input[type="number"] {
             width: 50px;
             padding: 5px;
@@ -71,38 +99,25 @@
             border-radius: 4px;
         }
 
-        .leader {
-            background-color: #e8f5e9;
-        }
+        .leader { background-color: #e8f5e9 !important; }
+        .last-place { background-color: #ffebee !important; }
 
-        .last-place {
-            background-color: #ffebee;
-        }
-
-        .info-box {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            background-color: #f0f0f0;
+        .progress-container {
+            width: 150px;
+            background: #f0f0f0;
             border-radius: 10px;
-            margin: 5px 0;
+            overflow: hidden;
         }
 
         .progress-bar {
             height: 20px;
             border-radius: 10px;
-            transition: width 0.5s ease-in-out;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 5px;
+            transition: width 0.5s;
             color: white;
+            text-align: right;
+            padding-right: 5px;
             font-size: 12px;
+            line-height: 20px;
         }
 
         .progress-level-1 { background-color: #9e9e9e; }
@@ -110,62 +125,44 @@
         .progress-level-3 { background-color: #2196f3; }
         .progress-level-4 { background-color: #4caf50; }
 
-        .summary-columns {
-            position: absolute;
-            right: 0;
-            top: auto;
-            background-color: white;
-            border-left: 3px solid #ddd;
+        .info-box {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
         }
 
         .syncing {
             position: fixed;
             top: 10px;
             right: 10px;
-            background-color: #fff;
-            padding: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
             border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: none;
         }
 
         @media screen and (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .table-scroll {
-                margin-left: 100px;
-            }
-
-            .fixed-column {
-                width: 100px;
-            }
-
-            th, td {
-                padding: 5px;
-                font-size: 12px;
-            }
-
-            input[type="number"] {
+            .container { padding: 10px; }
+            input[type="number"] { 
                 width: 40px;
                 padding: 3px;
             }
-
-            .info-box {
-                padding: 10px;
-            }
+            .names-table { width: 100px; }
+            .scroll-container { margin-left: 100px; }
         }
     </style>
 </head>
 <body>
     <div id="syncing" class="syncing">Sincronizando...</div>
-    
+
     <div class="container">
         <h1 style="text-align: center; margin-bottom: 20px;">Controle do Desafio de Ginástica</h1>
-        
-        <div class="table-wrapper">
-            <div class="fixed-column">
+
+        <div class="table-container">
+            <!-- Tabela de nomes (fixa à esquerda) -->
+            <div class="names-table">
                 <table>
                     <thead>
                         <tr><th>Participante</th></tr>
@@ -179,26 +176,24 @@
                 </table>
             </div>
 
-            <div class="table-scroll">
-                <table id="workoutTable">
+            <!-- Container com rolagem horizontal -->
+            <div class="scroll-container">
+                <table class="main-table" id="workoutTable">
                     <thead>
-                        <tr id="headerRow">
-                            <!-- Cabeçalhos das semanas serão inseridos via JavaScript -->
-                        </tr>
+                        <tr id="headerRow"></tr>
                     </thead>
-                    <tbody>
-                        <!-- Células das semanas serão inseridas via JavaScript -->
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
 
-            <div class="summary-columns">
+            <!-- Tabela de totais (fixa à direita) -->
+            <div class="totals-table">
                 <table>
                     <thead>
                         <tr>
                             <th>Total</th>
                             <th>Saldo (€)</th>
-                            <th style="min-width: 150px;">Progresso</th>
+                            <th>Progresso</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -242,35 +237,23 @@
         const endDate = new Date('2025-07-31');
         const participants = ['Andréa', 'Cláudia', 'Isabela', 'Fabiana'];
         let cachedData = null;
-        let isSyncing = false;
 
-        // Função para mostrar/esconder indicador de sincronização
-        function toggleSyncing(show) {
-            document.getElementById('syncing').style.display = show ? 'block' : 'none';
-        }
-
-        // Gerar datas das semanas
         function generateWeeks() {
             const weeks = [];
             let currentDate = new Date(startDate);
-            
             while (currentDate <= endDate) {
                 const weekStart = new Date(currentDate);
                 const weekEnd = new Date(currentDate);
                 weekEnd.setDate(weekEnd.getDate() + 6);
-                
                 weeks.push({
                     start: formatDate(weekStart),
                     end: formatDate(weekEnd)
                 });
-                
                 currentDate.setDate(currentDate.getDate() + 7);
             }
-            
             return weeks;
         }
 
-        // Formatar data
         function formatDate(date) {
             return date.toLocaleDateString('pt-BR', {
                 day: '2-digit',
@@ -279,14 +262,11 @@
             });
         }
 
-        // Carregar dados do arquivo data.json
         async function loadData() {
             try {
-                toggleSyncing(true);
+                document.getElementById('syncing').style.display = 'block';
                 const response = await fetch('data.json?' + new Date().getTime());
-                if (!response.ok) {
-                    throw new Error('Erro ao carregar dados');
-                }
+                if (!response.ok) throw new Error('Erro ao carregar dados');
                 const data = await response.json();
                 cachedData = data.workoutData || {};
                 return cachedData;
@@ -294,21 +274,23 @@
                 console.error('Erro ao carregar dados:', error);
                 return {};
             } finally {
-                toggleSyncing(false);
+                document.getElementById('syncing').style.display = 'none';
             }
         }
 
-        // Inicializar tabela
         async function initializeTable() {
             const weeks = generateWeeks();
             const savedData = await loadData();
             const headerRow = document.getElementById('headerRow');
             const tbody = document.querySelector('#workoutTable tbody');
             
+            // Limpar conteúdo existente
+            headerRow.innerHTML = '';
+            tbody.innerHTML = '';
+            
             // Criar cabeçalhos
             weeks.forEach((week, index) => {
                 const th = document.createElement('th');
-                th.className = 'week-column';
                 th.innerHTML = `Semana ${index + 1}<br>${week.start} - ${week.end}`;
                 headerRow.appendChild(th);
             });
@@ -319,17 +301,15 @@
                 row.dataset.participant = participant;
                 
                 weeks.forEach((_, weekIndex) => {
-                    const cell = document.createElement('td');
+                    const td = document.createElement('td');
                     const input = document.createElement('input');
                     input.type = 'number';
                     input.min = '0';
                     input.max = '3';
                     input.value = savedData[participant]?.[weekIndex] || 0;
-                    input.onchange = function() {
-                        handleWorkoutUpdate(this);
-                    };
-                    cell.appendChild(input);
-                    row.appendChild(cell);
+                    input.onchange = handleWorkoutUpdate;
+                    td.appendChild(input);
+                    row.appendChild(td);
                 });
                 
                 tbody.appendChild(row);
@@ -338,7 +318,6 @@
             updateTotalsAndRankings();
         }
 
-        // Atualizar totais e rankings
         function updateTotalsAndRankings() {
             const weeks = generateWeeks();
             const rows = document.querySelectorAll('#workoutTable tbody tr');
@@ -347,22 +326,20 @@
             let totals = [];
 
             rows.forEach((row, rowIndex) => {
-                const inputs = row.querySelectorAll('input[type="number"]');
+                const inputs = row.querySelectorAll('input');
                 const total = Array.from(inputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
                 const participant = row.dataset.participant;
-                
-                // Atualizar total e saldo
-                const totalCell = document.querySelectorAll('.total')[rowIndex];
-                const balanceCell = document.querySelectorAll('.balance')[rowIndex];
-                const progressCell = document.querySelectorAll('.progress')[rowIndex];
-                
-                totalCell.textContent = total;
-                
+
+                // Atualizar células de total e saldo
+                const totalCells = document.querySelectorAll('.total');
+                const balanceCells = document.querySelectorAll('.balance');
+                const progressCells = document.querySelectorAll('.progress');
+
+                totalCells[rowIndex].textContent = total;
+
                 const totalWeeks = weeks.length;
-                const requiredPerWeek = 3;
-                const totalRequired = totalWeeks * requiredPerWeek;
-                const balance = (total * 10) - (totalRequired * 10);
-                balanceCell.textContent = balance + '€';
+                const balance = (total * 10) - (totalWeeks * 3 * 10);
+                balanceCells[rowIndex].textContent = balance + '€';
 
                 // Atualizar barra de progresso
                 const maxPossible = totalWeeks * 3;
@@ -373,8 +350,8 @@
                 else if (percentage >= 50) progressClass = 'progress-level-3';
                 else if (percentage >= 20) progressClass = 'progress-level-2';
 
-                progressCell.innerHTML = `
-                    <div class="progress-bar-container">
+                progressCells[rowIndex].innerHTML = `
+                    <div class="progress-container">
                         <div class="progress-bar ${progressClass}" style="width: ${percentage}%">
                             ${Math.round(percentage)}%
                         </div>
@@ -386,8 +363,9 @@
                 totals.push({ name: participant, total });
             });
 
-            // Atualizar classes de liderança
-            document.querySelectorAll('.fixed-column tbody tr').forEach((row, index) => {
+            // Atualizar líderes e últimos
+            const nameRows = document.querySelectorAll('.names-table tbody tr');
+            nameRows.forEach((row, index) => {
                 const total = parseInt(document.querySelectorAll('.total')[index].textContent);
                 row.classList.remove('leader', 'last-place');
                 if (total === maxTotal && total > 0) row.classList.add('leader');
@@ -407,34 +385,29 @@
             }
         }
 
-        // Manipular atualização de atividades
         let updateTimeout;
-        async function handleWorkoutUpdate(input) {
+        async function handleWorkoutUpdate(event) {
+            const input = event.target;
             input.value = Math.max(0, Math.min(3, parseInt(input.value) || 0));
             
             const row = input.closest('tr');
             const participant = row.dataset.participant;
-            const weekIndex = Array.from(row.cells).indexOf(input.closest('td'));
+            const weekIndex = Array.from(row.children).indexOf(input.parentElement);
             
-            // Atualizar dados em cache
-            if (!cachedData[participant]) {
-                cachedData[participant] = {};
-            }
+            if (!cachedData[participant]) cachedData[participant] = {};
             cachedData[participant][weekIndex] = parseInt(input.value);
             
-            // Atualizar UI
             updateTotalsAndRankings();
             
             // Debounce para evitar muitas atualizações
             clearTimeout(updateTimeout);
-            updateTimeout = setTimeout(async () => {
-                try {
-                    toggleSyncing(true);
-                    // Atualizar localStorage como backup
-                    localStorage.setItem('workoutDataBackup', JSON.stringify(cachedData));
-                    
-                    // Tentar carregar dados mais recentes antes de atualizar
-                    await loadData();
-                    // Mesclar dados locais com dados do servidor
-                    if (!cachedData[participant]) {
-                        cachedData
+            updateTimeout = setTimeout(() => {
+                localStorage.setItem('workoutDataBackup', JSON.stringify(cachedData));
+            }, 1000);
+        }
+
+        // Inicializar a tabela quando a página carregar
+        window.addEventListener('load', initializeTable);
+    </script>
+</body>
+</html>
