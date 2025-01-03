@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        .table-wrapper {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            margin-left: 150px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: max-content;
+            background-color: white;
+        }
+
+        .fixed-column {
+            position: absolute;
+            width: 150px;
+            left: 0;
+            top: auto;
+            border-right: 3px solid #ddd;
+            background-color: white;
+        }
+
+        .fixed-column th,
+        .fixed-column td {
+            border-right: none;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .week-column {
+            min-width: 120px;
+        }
+
+        input[type="number"] {
+            width: 50px;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .leader {
+            background-color: #e8f5e9;
+        }
+
+        .last-place {
+            background-color: #ffebee;
+        }
+
+        .info-box {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+
+        .progress-bar {
+            height: 20px;
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 5px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .progress-level-1 { background-color: #9e9e9e; }
+        .progress-level-2 { background-color: #9c27b0; }
+        .progress-level-3 { background-color: #2196f3; }
+        .progress-level-4 { background-color: #4caf50; }
+
+        .summary-columns {
+            position: absolute;
+            right: 0;
+            top: auto;
+            background-color: white;
+            border-left: 3px solid #ddd;
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .table-scroll {
+                margin-left: 100px;
+            }
+
+            .fixed-column {
+                width: 100px;
+            }
+
+            th, td {
+                padding: 5px;
+                font-size: 12px;
+            }
+
+            input[type="number"] {
+                width: 40px;
+                padding: 3px;
+            }
+
+            .info-box {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; margin-bottom: 20px;">Controle do Desafio de Ginástica</h1>
+        
+        <div class="table-wrapper">
+            <div class="fixed-column">
+                <table>
+                    <thead>
+                        <tr><th>Participante</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Andréa</td></tr>
+                        <tr><td>Cláudia</td></tr>
+                        <tr><td>Isabela</td></tr>
+                        <tr><td>Fabiana</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-scroll">
+                <table id="workoutTable">
+                    <thead>
+                        <tr id="headerRow">
+                            <!-- Cabeçalhos das semanas serão inseridos via JavaScript -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Células das semanas serão inseridas via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="summary-columns">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Total</th>
+                            <th>Saldo (€)</th>
+                            <th style="min-width: 150px;">Progresso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="total">0</td>
+                            <td class="balance">0</td>
+                            <td class="progress"></td>
+                        </tr>
+                        <tr>
+                            <td class="total">0</td>
+                            <td class="balance">0</td>
+                            <td class="progress"></td>
+                        </tr>
+                        <tr>
+                            <td class="total">0</td>
+                            <td class="balance">0</td>
+                            <td class="progress"></td>
+                        </tr>
+                        <tr>
+                            <td class="total">0</td>
+                            <td class="balance">0</td>
+                            <td class="progress"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>Informações do Desafio:</h3>
+            <p>• Período: 06/01/2025 - 31/07/2025</p>
+            <p>• Objetivo: 3 atividades por semana</p>
+            <p>• Máximo de atividades por semana: 3</p>
+            <p>• Multa por atividade não realizada: 10€</p>
+            <p id="leaderInfo"></p>
+        </div>
+    </div>
+
+    <script>
+        // Configurações do desafio
+        const startDate = new Date('2025-01-06');
+        const endDate = new Date('2025-07-31');
+        const participants = ['Andréa', 'Cláudia', 'Isabela', 'Fabiana'];
+        
+        // Gerar datas das semanas
+        function generateWeeks() {
+            const weeks = [];
+            let currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                const weekStart = new Date(currentDate);
+                const weekEnd = new Date(currentDate);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                
+                weeks.push({
+                    start: weekStart.toLocaleDateString('pt-BR'),
+                    end: weekEnd.toLocaleDateString('pt-BR')
+                });
+                
+                currentDate.setDate(currentDate.getDate() + 7);
+            }
+            
+            return weeks;
+        }
+
+        // Carregar dados salvos
+        function loadSavedData() {
+            const savedData = localStorage.getItem('workoutData');
+            return savedData ? JSON.parse(savedData) : {};
+        }
+
+        // Salvar dados
+        function saveData(data) {
+            localStorage.setItem('workoutData', JSON.stringify(data));
+        }
+
+        // Inicializar tabela
+        function initializeTable() {
+            const weeks = generateWeeks();
+            const savedData = loadSavedData();
+            const headerRow = document.getElementById('headerRow');
+            const tbody = document.querySelector('#workoutTable tbody');
+            
+            // Criar cabeçalhos
+            weeks.forEach((week, index) => {
+                const th = document.createElement('th');
+                th.className = 'week-column';
+                th.innerHTML = `Semana ${index + 1}<br>${week.start} - ${week.end}`;
+                headerRow.appendChild(th);
+            });
+            
+            // Criar linhas para cada participante
+            participants.forEach(participant => {
+                const row = document.createElement('tr');
+                row.dataset.participant = participant;
+                
+                weeks.forEach((_, weekIndex) => {
+                    const cell = document.createElement('td');
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.min = '0';
+                    input.max = '3';
+                    input.value = savedData[participant]?.[weekIndex] || 0;
+                    input.onchange = function() {
+                        updateWorkouts(this);
+                    };
+                    cell.appendChild(input);
+                    row.appendChild(cell);
+                });
+                
+                tbody.appendChild(row);
+            });
+            
+            updateTotalsAndRankings();
+        }
+
+        function updateWorkouts(input) {
+            input.value = Math.max(0, Math.min(3, parseInt(input.value) || 0));
+            
+            // Salvar dados
+            const savedData = loadSavedData();
+            const row = input.closest('tr');
+            const participant = row.dataset.participant;
+            const weekIndex = Array.from(row.cells).indexOf(input.closest('td'));
+            
+            if (!savedData[participant]) {
+                savedData[participant] = {};
+            }
+            savedData[participant][weekIndex] = parseInt(input.value);
+            saveData(savedData);
+            
+            updateTotalsAndRankings();
+        }
+
+        function updateTotalsAndRankings() {
+            const weeks = generateWeeks();
+            const rows = document.querySelectorAll('#workoutTable tbody tr');
+            let maxTotal = 0;
+            let minTotal = Infinity;
+            let totals = [];
+
+            rows.forEach((row, rowIndex) => {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                const total = Array.from(inputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
+                const participant = row.dataset.participant;
+                
+                // Atualizar total e saldo
+                const totalCell = document.querySelectorAll('.total')[rowIndex];
+                const balanceCell = document.querySelectorAll('.balance')[rowIndex];
+                const progressCell = document.querySelectorAll('.progress')[rowIndex];
+                
+                totalCell.textContent = total;
+                
+                const totalWeeks = weeks.length;
+                const requiredPerWeek = 3;
+                const totalRequired = totalWeeks * requiredPerWeek;
+                const balance = (total * 10) - (totalRequired * 10);
+                balanceCell.textContent = balance + '€';
+
+                // Atualizar barra de progresso
+                const maxPossible = totalWeeks * 3;
+                const percentage = (total / maxPossible) * 100;
+                let progressClass = 'progress-level-1';
+                
+                if (percentage >= 80) progressClass = 'progress-level-4';
+                else if (percentage >= 50) progressClass = 'progress-level-3';
+                else if (percentage >= 20) progressClass = 'progress-level-2';
+
+                progressCell.innerHTML = `
+                    <div class="progress-bar-container">
+                        <div class="progress-bar ${progressClass}" style="width: ${percentage}%">
+                            ${Math.round(percentage)}%
+                        </div>
+                    </div>
+                `;
+
+                maxTotal = Math.max(maxTotal, total);
+                minTotal = Math.min(minTotal, total);
+                totals.push({ name: participant, total });
+            });
+
+            // Atualizar classes de liderança
+            document.querySelectorAll('.fixed-column tbody tr').forEach((row, index) => {
+                const total = parseInt(document.querySelectorAll('.total')[index].textContent);
+                row.classList.remove('leader', 'last-place');
+                if (total === maxTotal && total > 0) row.classList.add('leader');
+                if (total === minTotal && total > 0) row.classList.add('last-place');
+            });
+
+            // Atualizar informação do líder
+            const leaders = totals.filter(t => t.total === maxTotal && t.total > 0);
+            const leaderInfo = document.getElementById('leaderInfo');
+            if (leaders.length > 0) {
+                const leaderText = leaders.length > 1 ? 'Líderes atuais' : 'Líder atual';
+                const leaderNames = leaders.map(l => l.name).join(', ');
+                leaderInfo.textContent = `• ${leaderText}: ${leaderNames} com ${maxTotal} atividades`;
+                leaderInfo.style.color = '#4caf50';
+            } else {
+                leaderInfo.textContent = '';
+            }
+        }
+
+        // Inicializar a planilha
+        initializeTable();
+    </script>
+</body>
+</html>
