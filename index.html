@@ -1,493 +1,213 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio de Ginástica</title>
     <style>
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-        }
-
-        .container {
-            width: 100%;
-            padding: 20px;
+            box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
 
-        .table-wrapper {
-            position: relative;
-            margin-top: 20px;
-        }
-
-        .table-scroll {
-            overflow-x: auto;
-            margin-left: 150px;
-            margin-right: 350px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: max-content;
-            background-color: white;
-        }
-
-        .fixed-column {
-            position: absolute;
-            width: 150px;
-            left: 0;
-            top: auto;
-            border-right: 3px solid #ddd;
-            background-color: white;
-        }
-
-        .fixed-column th,
-        .fixed-column td {
-            border-right: none;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-            min-width: 100px;
-        }
-
-        th {
+        body {
+            padding: 1rem;
             background-color: #f5f5f5;
-            font-weight: bold;
-            white-space: nowrap;
         }
 
-        .week-column {
-            min-width: 120px;
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        input[type="number"] {
-            width: 50px;
-            padding: 5px;
+        .title {
             text-align: center;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .participants {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .participants {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        .participant-card {
+            padding: 1rem;
             border: 1px solid #ddd;
             border-radius: 4px;
+            transition: background-color 0.3s;
         }
 
-        .leader {
-            background-color: #e8f5e9;
+        .participant-card.leader {
+            background-color: #e6ffe6;
+            border-color: #4CAF50;
         }
 
-        .last-place {
-            background-color: #ffebee;
-        }
-
-        .info-box {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            background-color: #f0f0f0;
-            border-radius: 10px;
-            margin: 5px 0;
-        }
-
-        .progress-bar {
-            height: 20px;
-            border-radius: 10px;
-            transition: width 0.5s ease-in-out;
+        .activity-input {
             display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 5px;
-            color: white;
-            font-size: 12px;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
         }
 
-        .progress-level-1 { background-color: #9e9e9e; }
-        .progress-level-2 { background-color: #9c27b0; }
-        .progress-level-3 { background-color: #2196f3; }
-        .progress-level-4 { background-color: #4caf50; }
-
-        .summary-columns {
-            position: absolute;
-            right: 0;
-            top: auto;
-            background-color: white;
-            border-left: 3px solid #ddd;
-            width: 350px;
+        input[type="date"] {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex: 1;
         }
 
-        .save-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: #4caf50;
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
+            transition: background-color 0.3s;
         }
 
-        .save-button:hover {
+        button:hover {
             background-color: #45a049;
         }
 
-        .save-button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
+        .stats {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            border-radius: 4px;
-            color: white;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-            z-index: 1000;
+        .negative {
+            color: #f44336;
         }
 
-        .success { background-color: #4caf50; opacity: 1; }
-        .error { background-color: #f44336; opacity: 1; }
-        .loading { background-color: #2196f3; opacity: 1; }
-
-        @media screen and (max-width: 768px) {
-            .container { padding: 10px; }
-            .table-scroll { 
-                margin-left: 100px;
-                margin-right: 200px;
-            }
-            .fixed-column { width: 100px; }
-            .summary-columns { width: 200px; }
-            th, td { padding: 5px; font-size: 12px; }
-            input[type="number"] { width: 40px; padding: 3px; }
-            .info-box { padding: 10px; }
+        .positive {
+            color: #4CAF50;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align: center; margin-bottom: 20px;">Controle do Desafio de Ginástica</h1>
-        
-        <div class="table-wrapper">
-            <div class="fixed-column">
-                <table>
-                    <thead>
-                        <tr><th>Participante</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Andréa</td></tr>
-                        <tr><td>Cláudia</td></tr>
-                        <tr><td>Isabela</td></tr>
-                        <tr><td>Fabiana</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="table-scroll">
-                <table id="workoutTable">
-                    <thead>
-                        <tr id="headerRow">
-                            <!-- Cabeçalhos das semanas serão inseridos via JavaScript -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Células das semanas serão inseridas via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="summary-columns">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Total</th>
-                            <th>Saldo (€)</th>
-                            <th style="min-width: 150px;">Progresso</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="total">0</td>
-                            <td class="balance">0</td>
-                            <td class="progress"></td>
-                        </tr>
-                        <tr>
-                            <td class="total">0</td>
-                            <td class="balance">0</td>
-                            <td class="progress"></td>
-                        </tr>
-                        <tr>
-                            <td class="total">0</td>
-                            <td class="balance">0</td>
-                            <td class="progress"></td>
-                        </tr>
-                        <tr>
-                            <td class="total">0</td>
-                            <td class="balance">0</td>
-                            <td class="progress"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="info-box">
-            <h3>Informações do Desafio:</h3>
-            <p>• Período: 06/01/2025 - 31/07/2025</p>
-            <p>• Objetivo: 3 atividades por semana</p>
-            <p>• Máximo de atividades por semana: 3</p>
-            <p>• Multa por atividade não realizada: 10€</p>
-            <p id="leaderInfo"></p>
-        </div>
-
-        <button id="saveButton" class="save-button">Salvar Alterações</button>
+        <h1 class="title">Desafio de Ginástica</h1>
+        <div class="participants" id="participants"></div>
     </div>
-    <div id="message" class="message"></div>
 
     <script>
-        // Variáveis globais
-        let currentData = {};
-        let hasUnsavedChanges = false;
         const startDate = new Date('2025-01-06');
         const endDate = new Date('2025-07-31');
-        const participants = ['Andréa', 'Cláudia', 'Isabela', 'Fabiana'];
+        const participantNames = ['Participante 1', 'Participante 2', 'Participante 3', 'Participante 4', 'Participante 5'];
+        const ACTIVITY_VALUE = 10; // euros
 
-        // Função para formatar data em PT-BR
-        function formatDate(date) {
-            return date.toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
+        let participants = loadParticipants() || initializeParticipants();
+
+        function initializeParticipants() {
+            return participantNames.map(name => ({
+                name,
+                activities: [],
+                balance: calculateInitialBalance()
+            }));
         }
 
-        // Gerar datas das semanas
-        function generateWeeks() {
-            const weeks = [];
+        function calculateInitialBalance() {
+            let weeks = 0;
             let currentDate = new Date(startDate);
-            
             while (currentDate <= endDate) {
-                const weekStart = new Date(currentDate);
-                const weekEnd = new Date(currentDate);
-                weekEnd.setDate(weekEnd.getDate() + 6);
-                
-                weeks.push({
-                    start: formatDate(weekStart),
-                    end: formatDate(weekEnd)
-                });
-                
+                weeks++;
                 currentDate.setDate(currentDate.getDate() + 7);
             }
-            
-            return weeks;
+            return -(weeks * 3 * ACTIVITY_VALUE); // 3 activities per week
         }
 
-        // Função para mostrar mensagens
-        function showMessage(text, type) {
-            const message = document.getElementById('message');
-            message.textContent = text;
-            message.className = `message ${type}`;
-            setTimeout(() => {
-                message.className = 'message';
-            }, 3000);
+        function loadParticipants() {
+            const saved = localStorage.getItem('fitnessChallenge');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                parsed.forEach(p => {
+                    p.activities = p.activities.map(a => new Date(a));
+                });
+                return parsed;
+            }
+            return null;
         }
 
-        // Carregar dados do arquivo data.json
-        async function loadData() {
-            try {
-                showMessage('Carregando dados...', 'loading');
-                const response = await fetch('data.json');
-                if (!response.ok) {
-                    throw new Error('Erro ao carregar dados');
-                }
-                const data = await response.json();
-                currentData = data.workoutData || {};
-                showMessage('Dados carregados com sucesso!', 'success');
-                return currentData;
-            } catch (error) {
-                console.error('Erro ao carregar dados:', error);
-                showMessage('Erro ao carregar dados', 'error');
-                return {};
+        function saveParticipants() {
+            localStorage.setItem('fitnessChallenge', JSON.stringify(participants));
+        }
+
+        function addActivity(participantIndex, date) {
+            const participant = participants[participantIndex];
+            if (!participant.activities.some(a => a.toDateString() === date.toDateString())) {
+                participant.activities.push(date);
+                participant.balance += ACTIVITY_VALUE;
+                saveParticipants();
+                renderParticipants();
+            } else {
+                alert('Atividade já registrada para esta data!');
             }
         }
 
-        // Função para salvar dados localmente
-        function updateLocalData(participant, weekIndex, value) {
-            if (!currentData[participant]) {
-                currentData[participant] = {};
-            }
-            currentData[participant][weekIndex] = parseInt(value);
-            hasUnsavedChanges = true;
-            document.getElementById('saveButton').disabled = false;
+        function getLeaderIndex() {
+            return participants.reduce((maxIndex, current, index, array) => 
+                current.activities.length > array[maxIndex].activities.length ? index : maxIndex
+            , 0);
         }
 
-        // Download dos dados como arquivo JSON
-        function downloadData() {
-            const dataStr = JSON.stringify({ workoutData: currentData }, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = 'data.json';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            showMessage('Dados exportados com sucesso!', 'success');
-            hasUnsavedChanges = false;
-            document.getElementById('saveButton').disabled = true;
-        }
-
-        // Atualizar totais e rankings
-        function updateTotalsAndRankings() {
-            const weeks = generateWeeks();
-            const fixedRows = document.querySelectorAll('.fixed-column tbody tr');
-            const totals = participants.map(participant => ({
-                name: participant,
-                total: Object.values(currentData[participant] || {}).reduce((sum, val) => sum + val, 0)
-            }));
-
-            const maxTotal = Math.max(...totals.map(p => p.total));
-            const minTotal = Math.min(...totals.map(p => p.total));
+        function renderParticipants() {
+            const container = document.getElementById('participants');
+            container.innerHTML = '';
+            const leaderIndex = getLeaderIndex();
 
             participants.forEach((participant, index) => {
-                const total = totals[index].total;
-                const totalCell = document.querySelectorAll('.total')[index];
-                const balanceCell = document.querySelectorAll('.balance')[index];
-                const progressCell = document.querySelectorAll('.progress')[index];
+                const card = document.createElement('div');
+                card.className = `participant-card ${index === leaderIndex ? 'leader' : ''}`;
                 
-                // Atualizar total
-                totalCell.textContent = total;
-                
-                // Atualizar saldo
-                const totalWeeks = weeks.length;
-                const requiredPerWeek = 3;
-                const totalRequired = totalWeeks * requiredPerWeek;
-                const balance = (total * 10) - (totalRequired * 10);
-                balanceCell.textContent = balance + '€';
-
-                // Atualizar barra de progresso
-                const maxPossible = totalWeeks * 3;
-                const percentage = (total / maxPossible) * 100;
-                let progressClass = 'progress-level-1';
-                
-                if (percentage >= 80) progressClass = 'progress-level-4';
-                else if (percentage >= 50) progressClass = 'progress-level-3';
-                else if (percentage >= 20) progressClass = 'progress-level-2';
-
-                progressCell.innerHTML = `
-                    <div class="progress-bar-container">
-                        <div class="progress-bar ${progressClass}" style="width: ${percentage}%">
-                            ${Math.round(percentage)}%
-                        </div>
+                card.innerHTML = `
+                    <h2>${participant.name}</h2>
+                    <div class="stats">
+                        <p>Atividades realizadas: ${participant.activities.length}</p>
+                        <p>Saldo: <span class="${participant.balance >= 0 ? 'positive' : 'negative'}">€${participant.balance}</span></p>
+                    </div>
+                    <div class="activity-input">
+                        <input type="date" 
+                            min="${startDate.toISOString().split('T')[0]}"
+                            max="${endDate.toISOString().split('T')[0]}"
+                        >
+                        <button onclick="handleAddActivity(${index}, this)">Registrar</button>
                     </div>
                 `;
 
-                // Atualizar classes de liderança
-                fixedRows[index].classList.remove('leader', 'last-place');
-                if (total === maxTotal && total > 0) fixedRows[index].classList.add('leader');
-                if (total === minTotal && total > 0) fixedRows[index].classList.add('last-place');
+                container.appendChild(card);
             });
+        }
 
-            // Atualizar informação do líder
-            const leaders = totals.filter(t => t.total === maxTotal && t.total > 0);
-            const leaderInfo = document.getElementById('leaderInfo');
-            if (leaders.length > 0) {
-                const leaderText = leaders.length > 1 ? 'Líderes atuais' : 'Líder atual';
-                const leaderNames = leaders.map(l => l.name).join(', ');
-                leaderInfo.textContent = `• ${leaderText}: ${leaderNames} com ${maxTotal} atividades`;
-                leaderInfo.style.color = '#4caf50';
+        function handleAddActivity(index, button) {
+            const dateInput = button.parentElement.querySelector('input[type="date"]');
+            if (dateInput.value) {
+                const date = new Date(dateInput.value);
+                if (date >= startDate && date <= endDate) {
+                    addActivity(index, date);
+                    dateInput.value = '';
+                } else {
+                    alert('Data fora do período do desafio!');
+                }
             } else {
-                leaderInfo.textContent = '';
+                alert('Selecione uma data!');
             }
         }
 
-        // Atualizar a função updateWorkouts
-        function updateWorkouts(input) {
-            const newValue = Math.max(0, Math.min(3, parseInt(input.value) || 0));
-            input.value = newValue;
-            
-            const row = input.closest('tr');
-            const participant = participants[Array.from(row.parentNode.children).indexOf(row)];
-            const weekIndex = Array.from(row.children).indexOf(input.parent// Atualizar a função updateWorkouts
-            function updateWorkouts(input) {
-                const newValue = Math.max(0, Math.min(3, parseInt(input.value) || 0));
-                input.value = newValue;
-                
-                const row = input.closest('tr');
-                const participant = participants[Array.from(row.parentNode.children).indexOf(row)];
-                const weekIndex = Array.from(row.children).indexOf(input.closest('td'));
-                
-                updateLocalData(participant, weekIndex, newValue);
-                updateTotalsAndRankings();
-            }
-
-            // Inicializar tabela
-            async function initializeTable() {
-                const weeks = generateWeeks();
-                const savedData = await loadData();
-                currentData = savedData;
-                
-                // Criar cabeçalhos
-                const headerRow = document.getElementById('headerRow');
-                weeks.forEach((week, index) => {
-                    const th = document.createElement('th');
-                    th.className = 'week-column';
-                    th.innerHTML = `Semana ${index + 1}<br>${week.start} - ${week.end}`;
-                    headerRow.appendChild(th);
-                });
-                
-                // Criar linhas para cada participante
-                const tbody = document.querySelector('#workoutTable tbody');
-                participants.forEach(participant => {
-                    const row = document.createElement('tr');
-                    row.dataset.participant = participant;
-                    
-                    weeks.forEach((_, weekIndex) => {
-                        const cell = document.createElement('td');
-                        const input = document.createElement('input');
-                        input.type = 'number';
-                        input.min = '0';
-                        input.max = '3';
-                        input.value = currentData[participant]?.[weekIndex] || 0;
-                        input.onchange = function() {
-                            updateWorkouts(this);
-                        };
-                        cell.appendChild(input);
-                        row.appendChild(cell);
-                    });
-                    
-                    tbody.appendChild(row);
-                });
-                
-                updateTotalsAndRankings();
-                
-                // Configurar botão de salvar
-                const saveButton = document.getElementById('saveButton');
-                saveButton.disabled = !hasUnsavedChanges;
-                saveButton.addEventListener('click', downloadData);
-            }
-
-            // Carregar dados quando a página iniciar
-            window.onload = initializeTable;
-
-            // Aviso antes de sair da página com alterações não salvas
-            window.onbeforeunload = function(e) {
-                if (hasUnsavedChanges) {
-                    e.preventDefault();
-                    return 'Você tem alterações não salvas. Deseja realmente sair?';
-                }
-            };
-        </script>
-    </body>
+        // Inicialização
+        renderParticipants();
+    </script>
+</body>
 </html>
